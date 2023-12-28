@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <cstdlib>
+#include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include "data.h"
