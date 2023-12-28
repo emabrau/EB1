@@ -1,9 +1,15 @@
-#include "data.h"
-#include <fstream>
 #include <iostream>
-#include <sstream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <list>
+#include <cstdlib>
 #include <iomanip>
-#include <stdexcept>
+#include <algorithm>
+#include "data.h"
+#include "functions.h"
+#include <chrono>
+#include <numeric>
 
 
 void loadData(std::vector<Studentas>& studentai, const std::string& filename) {
@@ -123,4 +129,6 @@ void generateRandomData(std::vector<Studentas>& studentai, int count) {
         studentai.push_back(studentas);
     }
 }
+
+
 
