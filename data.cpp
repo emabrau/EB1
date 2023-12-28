@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <list>
 #include <cstdlib>
 #include <iomanip>
 #include <algorithm>
@@ -11,6 +12,100 @@
 #include <numeric>
 
 
+void loadDataFromManualInput(std::vector<Studentas>& studentai) {
+    try {
+        while (true) {
+            Studentas studentas;
+
+            std::cout << "Iveskite studento varda (noredami baigti spauskite Enter): ";
+            std::cin.ignore(); 
+            getline(std::cin, studentas.vardas);
+
+            if (studentas.vardas.empty()) {
+                break;
+            }
+
+            std::cout << "Iveskite studento pavarde: ";
+            getline(std::cin, studentas.pavarde);
+
+            double ndBalai;
+            std::cout << "Iveskite studento " << studentas.vardas << " " << studentas.pavarde << " namu darbu balus " << " " << " (Noredami baigti spauskite Enter):\n";
+            while (true) {
+                std::string input;
+                getline(std::cin, input);
+
+                if (input.empty()) {
+                    break; 
+                }
+
+                ndBalai = std::stod(input);
+                studentas.ndBalai.push_back(ndBalai);
+            }
+
+            std::cout << "Iveskite studento " << studentas.vardas << " " << studentas.pavarde << " egzamino rezultata: ";
+            std::cin >> studentas.egzaminas;
+
+            studentai.push_back(studentas);
+        }
+    } catch (const std::exception& e) {
+        throw e;
+    }
+}
+
+void loadData(std::vector<Studentas>& studentai, const std::string& filename) {
+    try {
+      auto start = std::chrono::high_resolution_clock::now();
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw std::runtime_error("Nepavyko atidaryti failo " + filename);
+        }
+
+        studentai.clear(); 
+        std::string header;
+        std::getline(file, header);
+
+        std::string line;
+        while (std::getline(file, line)) {
+            Studentas studentas;
+
+            std::istringstream iss(line);
+            iss >> std::setw(15) >> studentas.vardas >> std::setw(15) >> studentas.pavarde;
+            for (int i = 0; i < 15; ++i) {
+                double balas;
+                iss >> std::setw(8) >> balas; 
+                studentas.ndBalai.push_back(balas);
+            }
+            iss >> studentas.egzaminas;
+
+            studentai.push_back(studentas);
+        }
+
+        file.close();
+      auto end = std::chrono::high_resolution_clock::now(); 
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+      std::cout << "Nuskaitymas is failo uztruko: " << duration.count() << " miilisekundziu" << std::endl;
+
+    } catch (const std::exception& e) {
+        throw e;
+    }
+}
+
+
+
+void generateRandomData(std::vector<Studentas>& studentai, int count) {
+    srand(time(0));
+    for (int i = 0; i < count; ++i) {
+        Studentas studentas;
+        studentas.vardas = "Vardas" + std::to_string(i);
+        studentas.pavarde = "Pavarde" + std::to_string(i);
+        for (int j = 0; j < 5; ++j) {
+            studentas.ndBalai.push_back((rand() % 10) + 1);
+        }
+        studentas.egzaminas = rand() % 10 + 1;
+        studentai.push_back(studentas);
+    }
+}
+
 
 void generateAndWriteStudentRecords(const std::string &filename, int size) {
    auto startTime = std::chrono::high_resolution_clock::now();
@@ -18,7 +113,7 @@ void generateAndWriteStudentRecords(const std::string &filename, int size) {
 
   std::vector<Studentas> students;
   students.reserve(size);
-  
+
     for (int i = size; i >= 1; --i) {
         Studentas student = generateRandomStudent(i);
         outFile << student.vardas << " " << student.pavarde;
@@ -30,11 +125,14 @@ void generateAndWriteStudentRecords(const std::string &filename, int size) {
     outFile.close();
 
    auto endTime = std::chrono::high_resolution_clock::now();
-  
+
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-  
+
   std::cout << "Laikas, per kuri sugeneravo " << filename << ": " << duration.count() /1000 << " s" << std::endl;
 }
+
+
+
 
 
 void processStudentData(const std::string &filename, int size, int repetitions) {
@@ -92,7 +190,7 @@ void processStudentData(const std::string &filename, int size, int repetitions) 
        auto startTimeWrite = std::chrono::high_resolution_clock::now();
       std::string nuskriaustukaiFilename = "nuskriaustukai" + std::to_string(size) + ".txt";
       std::string kietiakaiFilename = "kietiakai" + std::to_string(size) + ".txt";
-      
+
         std::ofstream outFileNuskriaustukai(nuskriaustukaiFilename);
         std::ofstream outFileKietiakai(kietiakaiFilename);
 
@@ -131,3 +229,6 @@ void processStudentData(const std::string &filename, int size, int repetitions) 
 
   return;
 }
+
+
+
