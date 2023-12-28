@@ -11,10 +11,10 @@ double Mediana(std::vector<double>& vec) {
     }
     sort(vec.begin(), vec.end());
     if (size % 2 == 0) {
-       
+
         return (vec[size / 2 - 1] + vec[size / 2]) / 2.0;
     } else {
-        
+
         return vec[size / 2];
     }
 }
@@ -37,6 +37,3 @@ void displayTable(const std::vector<Studentas>& studentai) {
                   << std::fixed << std::setprecision(2) << std::setw(20) << studentas.galutBalasVid << std::setw(20) << studentas.galutBalasMed << std::endl;
     }
 }
-
-
-
