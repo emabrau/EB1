@@ -22,15 +22,22 @@ int main() {
         loadDataFromManualInput(studentai);
         GalutinisBalas(studentai);
         displayTable(studentai);
+        
+        
     } else if (dataChoice == 'F' || dataChoice == 'f') {
         std::vector<Studentas> studentai;
+        std::vector<Studentas> nuskriaustukai;
+        std::vector<Studentas> kietiakai;
         std::string filename;
         std::cout << "Iveskite failo pavadinima: ";
         std::cin >> filename;
         try {
+            processStudentDataAndWriteToFile(filename);
             loadData(studentai, filename);
             GalutinisBalas(studentai);
             displayTable(studentai);
+            
+            
         } catch (const std::ifstream::failure& e) {
             std::cerr << "Error: Nepavyko atidaryti failo." << std::endl;
             return 1;
@@ -52,8 +59,6 @@ int main() {
 
     return 0;
 }
-
-
 
 
 
