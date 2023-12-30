@@ -5,7 +5,7 @@
 #include <vector>
 #include "data.h"
 
-
+extern const int numNamuDarbu;
 Studentas generateRandomStudent(int studentoNumeris);
 
 
@@ -19,4 +19,3 @@ void GalutinisBalas(std::vector<Studentas>& studentai);
 void displayTable(const std::vector<Studentas>& studentai);
 
 #endif
-
