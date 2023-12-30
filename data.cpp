@@ -70,7 +70,7 @@ void loadData(std::vector<Studentas>& studentai, const std::string& filename) {
 
             std::istringstream iss(line);
             iss >> std::setw(15) >> studentas.vardas >> std::setw(15) >> studentas.pavarde;
-            for (int i = 0; i < 15; ++i) {
+            for (int i = 0; i < 10; ++i) {
                 double balas;
                 iss >> std::setw(8) >> balas; 
                 studentas.ndBalai.push_back(balas);
@@ -82,14 +82,54 @@ void loadData(std::vector<Studentas>& studentai, const std::string& filename) {
 
         file.close();
       auto end = std::chrono::high_resolution_clock::now(); 
-      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-      std::cout << "Nuskaitymas is failo uztruko: " << duration.count() << " miilisekundziu" << std::endl;
+      auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+      std::cout << "Nuskaitymas is failo uztruko: " << duration.count() << " s" << std::endl;
 
+      
     } catch (const std::exception& e) {
         throw e;
     }
 }
 
+
+void writeStudentsToFile(const std::vector<Studentas>& students, const std::string& filename) {
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        std::cerr << "Nepavyko sukurti failo: " << filename << std::endl;
+        return;
+    }
+        outFile <<  std::left << std::setw(15) << "Vardas" << std::setw(15) << "Pavarde" << std::setw(20) << "Galutinis (Vid)" << std::setw(20) << "Galutinis (Med)" << std::endl;
+    for (const auto &student : students) {
+        outFile << std::left << std::setw(15) << student.vardas << std::setw(15) << student.pavarde
+        << std::fixed << std::setprecision(2) << std::setw(20) << student.galutBalasVid << std::setw(20) << student.galutBalasMed << std::endl;
+    }
+
+    outFile.close();
+}
+
+
+void processStudentDataAndWriteToFile(const std::string &filename) {
+    std::vector<Studentas> studentai;
+    loadData(studentai, filename);
+
+   
+    std::vector<Studentas> nuskriaustukai;
+    std::vector<Studentas> kietiakai;
+
+    GalutinisBalas(studentai);
+
+    for (const auto &student : studentai) {
+        if (student.galutBalasVid < 5.0) {
+            nuskriaustukai.push_back(student);
+        } else {
+            kietiakai.push_back(student);
+        }
+    }
+
+
+    writeStudentsToFile(nuskriaustukai, "nuskriaustukai_" + filename);
+    writeStudentsToFile(kietiakai, "kietiakai_" + filename);
+}
 
 
 void generateRandomData(std::vector<Studentas>& studentai, int count) {
@@ -108,27 +148,40 @@ void generateRandomData(std::vector<Studentas>& studentai, int count) {
 
 
 void generateAndWriteStudentRecords(const std::string &filename, int size) {
-   auto startTime = std::chrono::high_resolution_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
     std::ofstream outFile(filename);
 
-  std::vector<Studentas> students;
-  students.reserve(size);
+  
+    outFile << std::left << std::setw(15) << "Vardas" << std::setw(15) << "Pavarde";
+    for (int i = 1; i <= numNamuDarbu; ++i) {
+        outFile << std::setw(8) << "ND" + std::to_string(i);
+    }
+    outFile << std::setw(8) << "Egz." << std::endl;
+
+    
+    std::vector<Studentas> students;
+    students.reserve(size);
 
     for (int i = size; i >= 1; --i) {
         Studentas student = generateRandomStudent(i);
-        outFile << student.vardas << " " << student.pavarde;
+
+       
+        outFile << std::left << std::setw(15) << student.vardas << std::setw(15) << student.pavarde;
         for (double score : student.ndBalai) {
-            outFile << " " << score;
+            outFile << std::setw(8) << score;
         }
-        outFile << " " << student.egzaminas << " " << student.galutBalas << std::endl;
+        outFile << std::setw(8) << student.egzaminas << std::endl;
+
+        students.push_back(student);
     }
+
     outFile.close();
 
-   auto endTime = std::chrono::high_resolution_clock::now();
+    auto endTime = std::chrono::high_resolution_clock::now();
 
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
-  std::cout << "Laikas, per kuri sugeneravo " << filename << ": " << duration.count() /1000 << " s" << std::endl;
+    std::cout << "Laikas, per kuri sugeneravo " << filename << ": " << duration.count() / 1000 << " s" << std::endl;
 }
 
 
@@ -136,99 +189,94 @@ void generateAndWriteStudentRecords(const std::string &filename, int size) {
 
 
 void processStudentData(const std::string &filename, int size, int repetitions) {
-    std::vector<double> readTimes;
-    std::vector<double> sortTimes;
-    std::vector<double> writeTimes;
+  std::vector<double> readTimes;
+  std::vector<double> sortTimes;
+  std::vector<double> writeTimes;
+  std::vector<Studentas> students;
+  
+  auto startTimeRead = std::chrono::high_resolution_clock::now();
+  loadData(students, "studentai_" + std::to_string(size) + ".txt");
+  auto endTimeRead = std::chrono::high_resolution_clock::now();
+  auto durationRead = std::chrono::duration_cast<std::chrono::milliseconds>(endTimeRead - startTimeRead);
+  writeTimes.push_back(durationRead.count());
 
+  GalutinisBalas(students);
+
+  
     for (int rep = 0; rep < repetitions; ++rep) {
-        auto startTimeReading = std::chrono::high_resolution_clock::now();
+       auto startTimeSorting = std::chrono::high_resolution_clock::now();
+      std::sort(students.begin(), students.end(), compareStudents);
+      auto endTimeSorting = std::chrono::high_resolution_clock::now();
+      auto durationSorting = 
+      std::chrono::duration_cast<std::chrono::milliseconds>(endTimeSorting - 
+      startTimeSorting);
+      sortTimes.push_back(durationSorting.count());
+      
+      std::vector<Studentas> nuskriaustukai;
+      std::vector<Studentas> kietiakai;
 
-        std::ifstream inFile(filename);
-        if (!inFile.is_open()) {
-            std::cerr << "Nepavyko atidaryti failo: " << filename << std::endl;
+
+      std::copy_if(students.begin(), students.end(), 
+      std::back_inserter(nuskriaustukai),
+        [](const Studentas &student) {
+            return student.galutBalasVid < 5.0;
+        });
+
+      std::copy_if(students.begin(), students.end(), std::back_inserter(kietiakai),
+        [](const Studentas &student) {
+            return student.galutBalasVid >= 5.0;
+        });
+
+      
+       auto startTimeWrite = std::chrono::high_resolution_clock::now();
+        
+        std::string nuskriaustukaiFileName = "nuskriaustukai_" + std::to_string(size) + ".txt";
+        std::ofstream outFileNuskriaustukai(nuskriaustukaiFileName);
+        if (!outFileNuskriaustukai.is_open()) {
+            std::cerr << "Nepavyko sukurti failo: " << nuskriaustukaiFileName << std::endl;
             return;
         }
-
-        std::vector<Studentas> students;
-
-        Studentas student;
-        while (inFile >> student.vardas >> student.pavarde) {
-            student.ndBalai.clear();
-            for (int i = 0; i < 10; ++i) {
-                double score;
-                inFile >> score;
-                student.ndBalai.push_back(score);
-            }
-            inFile >> student.egzaminas >> student.galutBalas;
-            students.push_back(student);
-        }
-        inFile.close();
-
-        auto endTimeReading = std::chrono::high_resolution_clock::now();
-
-        auto durationReading = std::chrono::duration_cast<std::chrono::milliseconds>(endTimeReading - startTimeReading);
-
-        readTimes.push_back(durationReading.count());
-
-        auto startTimeSorting = std::chrono::high_resolution_clock::now();
-        std::sort(students.begin(), students.end(), compareStudents);
-        auto endTimeSorting = std::chrono::high_resolution_clock::now();
-
-        auto durationSorting = std::chrono::duration_cast<std::chrono::milliseconds>(endTimeSorting - startTimeSorting);
-        sortTimes.push_back(durationSorting.count());
-
-        std::ofstream outFileSorted(filename);
-        for (const Studentas &sortedStudent : students) {
-            outFileSorted << sortedStudent.vardas << " " << sortedStudent.pavarde;
-            for (double score : sortedStudent.ndBalai) {
-                outFileSorted << " " << score;
-            }
-            outFileSorted << " " << sortedStudent.egzaminas << " " << sortedStudent.galutBalas << std::endl;
-        }
-        outFileSorted.close();
-
-       auto startTimeWrite = std::chrono::high_resolution_clock::now();
-      std::string nuskriaustukaiFilename = "nuskriaustukai" + std::to_string(size) + ".txt";
-      std::string kietiakaiFilename = "kietiakai" + std::to_string(size) + ".txt";
-
-        std::ofstream outFileNuskriaustukai(nuskriaustukaiFilename);
-        std::ofstream outFileKietiakai(kietiakaiFilename);
-
-        for (const Studentas &sortedStudent : students) {
-            if (sortedStudent.galutBalas < 5.0) {
-                outFileNuskriaustukai << sortedStudent.vardas << " " << sortedStudent.pavarde;
-                for (double score : sortedStudent.ndBalai) {
-                    outFileNuskriaustukai << " " << score;
-                }
-                outFileNuskriaustukai << " " << sortedStudent.egzaminas << " " << sortedStudent.galutBalas << std::endl;
-            } else {
-                outFileKietiakai << sortedStudent.vardas << " " << sortedStudent.pavarde;
-                for (double score : sortedStudent.ndBalai) {
-                    outFileKietiakai << " " << score;
-                }
-                outFileKietiakai << " " << sortedStudent.egzaminas << " " << sortedStudent.galutBalas << std::endl;
-            }
-        }
+      outFileNuskriaustukai <<  std::left << std::setw(15) << "Vardas" << std::setw(15) << "Pavarde" << std::setw(20) << "Galutinis (Vid)" << std::setw(20) << "Galutinis (Med)" << std::endl;
+        for (const auto &student : nuskriaustukai) {
+    outFileNuskriaustukai << std::left << std::setw(15) << student.vardas << std::setw(15) << student.pavarde
+        << std::fixed << std::setprecision(2) << std::setw(20) << student.galutBalasVid << std::setw(20) << student.galutBalasMed << std::endl;
+}
         outFileNuskriaustukai.close();
-        outFileKietiakai.close();
-      auto endTimeWrite = std::chrono::high_resolution_clock::now();
 
-      auto durationWrite = std::chrono::duration_cast<std::chrono::milliseconds>(endTimeWrite - startTimeWrite);
-      writeTimes.push_back(durationWrite.count());
+      
+
+         std::string kietiakaiFileName = "kietiakai_" + std::to_string(size) + ".txt";
+        std::ofstream outFileKietiakai(kietiakaiFileName);
+        if (!outFileKietiakai.is_open()) {
+            std::cerr << "Nepavyko sukurti failo: " << kietiakaiFileName << std::endl;
+            return;
+        }
+      outFileKietiakai <<  std::left << std::setw(15) << "Vardas" << std::setw(15) << "Pavarde" << std::setw(20) << "Galutinis (Vid)" << std::setw(20) << "Galutinis (Med)" << std::endl;
+
+      
+        for (const auto &student : kietiakai) {
+          outFileKietiakai << std::left << std::setw(15) << student.vardas << std::setw(15) << student.pavarde
+        << std::fixed << std::setprecision(2) << std::setw(20) << student.galutBalasVid << std::setw(20) << student.galutBalasMed << std::endl;
+        }
+        outFileKietiakai.close();
+
+
+        auto endTimeWrite = std::chrono::high_resolution_clock::now();
+        auto durationWrite = std::chrono::duration_cast<std::chrono::milliseconds>(endTimeWrite - startTimeWrite);
+        writeTimes.push_back(durationWrite.count());
     }
 
     double averageReadTime = std::accumulate(readTimes.begin(), readTimes.end(), 0.0) / repetitions;
     double averageSortTime = std::accumulate(sortTimes.begin(), sortTimes.end(), 0.0) / repetitions;
-  double averageWriteTime = std::accumulate(writeTimes.begin(), writeTimes.end(), 0.0) / repetitions;
+    double averageWriteTime = std::accumulate(writeTimes.begin(), writeTimes.end(), 0.0) / repetitions;
 
-    std::cout << "Vidutinis nuskaitymo laikas: " << averageReadTime/1000 << " s" << std::endl;
-    std::cout << "Vidutinis rusiavimo laikas: " << averageSortTime/1000 << " s" << std::endl;
-
-  std::cout << "Vidutinis perrasymo laikas: " << averageWriteTime/1000 << " s" << std::endl;
-  std::cout << "--------------------------------------------------------------" << std::endl;
-
-  return;
+    std::cout << "Vidutinis generavimo laikas: " << averageReadTime / 1000 << " s" << std::endl;
+    std::cout << "Vidutinis rusiavimo laikas: " << averageSortTime / 1000 << " s" << std::endl;
+    std::cout << "Vidutinis perrasymo laikas: " << averageWriteTime / 1000 << " s" << std::endl;
+    std::cout << "--------------------------------------------------------------" << std::endl;
 }
+
+
 
 
 
