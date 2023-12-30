@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include "data.h"
+#include "functions.h"
 
 const int numNamuDarbu = 10; 
 Studentas generateRandomStudent(int studentoNumeris) {
@@ -55,6 +56,15 @@ double Mediana(std::vector<double>& vec) {
 }
 
 void GalutinisBalas(std::vector<Studentas>& studentai) {
+    for (Studentas& studentas : studentai) {
+        double vidurkis = 0.4 * (std::accumulate(studentas.ndBalai.begin(), studentas.ndBalai.end(), 0.0) / studentas.ndBalai.size()) + 0.6 * studentas.egzaminas;
+        double mediana = 0.4 * Mediana(studentas.ndBalai) + 0.6 * studentas.egzaminas;
+        studentas.galutBalasVid = vidurkis;
+        studentas.galutBalasMed = mediana;
+    }
+}
+
+void GalutinisBalasL(std::list<Studentas>& studentai) {
     for (Studentas& studentas : studentai) {
         double vidurkis = 0.4 * (std::accumulate(studentas.ndBalai.begin(), studentas.ndBalai.end(), 0.0) / studentas.ndBalai.size()) + 0.6 * studentas.egzaminas;
         double mediana = 0.4 * Mediana(studentas.ndBalai) + 0.6 * studentas.egzaminas;
