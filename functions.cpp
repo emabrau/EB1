@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include "data.h"
+#include "functions.h"
 
 const int numNamuDarbu = 10; 
 Studentas generateRandomStudent(int studentoNumeris) {
@@ -72,3 +73,4 @@ void displayTable(const std::vector<Studentas>& studentai) {
                   << std::fixed << std::setprecision(2) << std::setw(20) << studentas.galutBalasVid << std::setw(20) << studentas.galutBalasMed << std::endl;
     }
 }
+
