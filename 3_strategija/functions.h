@@ -3,9 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <list>
 #include "data.h"
 
-
+extern const int numNamuDarbu;
 Studentas generateRandomStudent(int studentoNumeris);
 
 
@@ -16,6 +17,7 @@ void generateAndWriteStudentRecords(const std::string &filename, int size);
 
 double Mediana(std::vector<double>& vec);
 void GalutinisBalas(std::vector<Studentas>& studentai);
+void GalutinisBalasL(std::list<Studentas>& studentai);
 void displayTable(const std::vector<Studentas>& studentai);
 
 #endif
