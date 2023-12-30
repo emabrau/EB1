@@ -29,6 +29,7 @@ int main() {
         std::cout << "Iveskite failo pavadinima: ";
         std::cin >> filename;
         try {
+            processStudentDataAndWriteToFile(filename);
             loadData(studentai, filename);
             GalutinisBalas(studentai);
             displayTable(studentai);
@@ -71,7 +72,6 @@ int main() {
 
     return 0;
 }
-
 
 
 
