@@ -23,5 +23,6 @@ void loadDataFromManualInput(std::vector<Studentas>& studentai);
 void loadData(std::vector<Studentas>& studentai, const std::string& filename);
 void chooseDataInputMethod(std::vector<Studentas>& studentai);
 void generateRandomData(std::vector<Studentas>& studentai, int count);
-
+void writeStudentsToFile(const std::vector<Studentas>& students, const std::string& filename);
+void processStudentDataAndWriteToFile(const std::string &filename);
 #endif
